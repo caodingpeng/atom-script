@@ -1,6 +1,9 @@
 # Maps Atom Grammar names to the command used by that language
 # As well as any special setup for arguments.
 
+_ = require 'underscore'
+GrammarUtils = require '../lib/grammar-utils'
+
 module.exports =
   AppleScript:
     'Selection Based':
@@ -23,14 +26,16 @@ module.exports =
       command: ""
       args: (context) -> [context.filepath]
   C:
-    "File Based":
-      command: "bash"
-      args: (context) -> ['-c', "xcrun clang -Wall -include stdio.h " + context.filepath + " -o /tmp/c.out && /tmp/c.out"]
+    if GrammarUtils.OperatingSystem.isDarwin()
+      "File Based":
+        command: "bash"
+        args: (context) -> ['-c', "xcrun clang -Wall -include stdio.h " + context.filepath + " -o /tmp/c.out && /tmp/c.out"]
 
   'C++':
-    "File Based":
-      command: "bash"
-      args: (context) -> ['-c', "xcrun clang++ -Wc++11-extensions -Wall -include stdio.h -include iostream " + context.filepath + " -o /tmp/cpp.out && /tmp/cpp.out"]
+    if GrammarUtils.OperatingSystem.isDarwin()
+      "File Based":
+        command: "bash"
+        args: (context) -> ['-c', "xcrun clang++ -Wc++11-extensions -Wall -include stdio.h -include iostream " + context.filepath + " -o /tmp/cpp.out && /tmp/cpp.out"]
 
   CoffeeScript:
     "Selection Based":
@@ -124,6 +129,17 @@ module.exports =
       command: "lilypond"
       args: (context) -> [context.filepath]
 
+  Lisp:
+    "Selection Based":
+      command: "sbcl"
+      args: (context) ->
+        statements = _.flatten(_.map(GrammarUtils.Lisp.splitStatements(context.getCode()), (statement) -> ['--eval', statement]))
+        args = _.union ['--noinform', '--disable-debugger', '--non-interactive', '--quit'], statements
+        return args
+    "File Based":
+      command: "sbcl"
+      args: (context) -> ['--noinform', '--script', context.filepath]
+
   LiveScript:
     "Selection Based":
       command: "livescript"
@@ -157,14 +173,16 @@ module.exports =
       args: (context) -> [context.filepath]
 
   'Objective-C':
-    "File Based":
-      command: "bash"
-      args: (context) -> ['-c', "xcrun clang -Wall -include stdio.h -framework Cocoa " + context.filepath + " -o /tmp/objc-c.out && /tmp/objc-c.out"]
+    if GrammarUtils.OperatingSystem.isDarwin()
+      "File Based":
+        command: "bash"
+        args: (context) -> ['-c', "xcrun clang -Wall -include stdio.h -framework Cocoa " + context.filepath + " -o /tmp/objc-c.out && /tmp/objc-c.out"]
 
   'Objective-C++':
-    "File Based":
-      command: "bash"
-      args: (context) -> ['-c', "xcrun clang++ -Wc++11-extensions -Wall -include stdio.h -include iostream -framework Cocoa " + context.filepath + " -o /tmp/objc-cpp.out && /tmp/objc-cpp.out"]
+    if GrammarUtils.OperatingSystem.isDarwin()
+      "File Based":
+        command: "bash"
+        args: (context) -> ['-c', "xcrun clang++ -Wc++11-extensions -Wall -include stdio.h -include iostream -framework Cocoa " + context.filepath + " -o /tmp/objc-cpp.out && /tmp/objc-cpp.out"]
 
   PHP:
     "Selection Based":
